@@ -14,5 +14,4 @@ Feat :
 HOW TO RUN?
 in bash type
 *bin/run*
-
 open localhost:3000
