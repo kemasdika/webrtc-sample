@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# http://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
+# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -o nounset -o errexit -o pipefail
+
+script=`realpath $0`
+scriptdir=`dirname $script`
+scriptname=`basename $script`
+
+# https://hub.docker.com/r/fonoster/routr/
+docker run -it \
+    -p 5062:5062 \
+    -e DATA_SOURCE_PROVIDER=files_data_provider \
+    fonoster/routr

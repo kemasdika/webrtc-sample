@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# http://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
+# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+ENV=$1
+INDEX_FILE="./index.html"
+TEMP_FILE="./index.temp.html"
+
+find_between() {
+    echo "$1" | sed -n "s/.*~\[\([^]]*\)\]~.*/\1/p"
+}
+
+echo "Starting to process $INDEX_FILE..."
+
+# Check if index.html exists and is readable
+if [[ -r "$INDEX_FILE" ]]; then
+    echo "$INDEX_FILE exists and is readable."
+else
+    echo "Error: $INDEX_FILE does not exist or is not readable."
+    exit 1
+fi
+
+# Create a temporary file for the output
+> "$TEMP_FILE"
+
+# Read the entire content of index.html into a single variable
+FILE_CONTENT=$(<"$INDEX_FILE")
+
+# Process the content to replace placeholders
+NEW_CONTENT="$FILE_CONTENT"
+while [[ "$NEW_CONTENT" == *"~["*"]~"* ]]; do
+    KEY=$(find_between "$NEW_CONTENT")
+    VALUE=${!KEY}
+    echo "Found variable: $KEY with value: $VALUE"
+    NEW_CONTENT="${NEW_CONTENT//"~[$KEY]~"/$VALUE}"
+done
+
+# Write the updated content to the temporary file
+printf "%s" "$NEW_CONTENT" > "$TEMP_FILE"
+
+# Replace the original file with the updated content
+mv "$TEMP_FILE" "$INDEX_FILE"
+
+echo "Finished processing $INDEX_FILE."
+
+set -o nounset -o errexit -o pipefail
+
+script=`realpath $0`
+scriptdir=`dirname $script`
+scriptname=`basename $script`
+
+cd $scriptdir/..
+
+docker-compose up
